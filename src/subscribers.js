@@ -1,3 +1,9 @@
+const isSet = instance => {
+  return instance instanceof Set;
+};
+
+// TODO: exceptions should be thrown, at least when subscribing
+
 class Subscribers {
   constructor(...channels) {
     this.subscribers = {};
@@ -10,9 +16,17 @@ class Subscribers {
   }
 
   add(name) {
-    if (!this.subscribers[name]) {
+    if (!isSet(this.subscribers[name])) {
       this.subscribers[name] = new Set();
     }
+  }
+
+  get(name) {
+    return this.subscribers[name];
+  }
+
+  has(name) {
+    return this.subscribers.hasOwnProperty(name);
   }
 
   remove(name) {
@@ -21,25 +35,24 @@ class Subscribers {
     }
   }
 
-  has(name) {
-    return this.subscribers.hasOwnProperty(name);
-  }
-
   subscribe(name, req) {
-    this.subscribers[name].add(req);
+    if (isSet(this.subscribers[name])) {
+      this.subscribers[name].add(req);
+    }
   }
 
   unsubscribe(name, req) {
-    this.subscribers[name].delete(req);
+    if (isSet(this.subscribers[name])) {
+      this.subscribers[name].delete(req);
+    }
   }
 
-  async notify(name, payload, callback) {
-    this.subscribers[name].forEach(async res => {
-      console.log("notify");
-      callback(payload, res);
-    });
+  hasSubscriber(name, req) {
+    if (isSet(this.subscribers[name])) {
+      return this.subscribers[name].has(req);
+    }
 
-    console.log("done");
+    return false;
   }
 }
 
