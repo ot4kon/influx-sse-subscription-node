@@ -12,7 +12,7 @@ const getApi = baseURL => {
 };
 
 const getUrl = (proto, host, port) => {
-  return `${proto}://${host}:${port}`;
+  return `${proto}://${host}${port ? `:${port}` : ""}`;
 };
 
 const getDestinations = destinations => destinations.map(dst => `'${dst}'`).join(",");
@@ -55,7 +55,7 @@ class RequestError extends InfluxSubscriberError {}
 class InfluxClient {
   constructor(opts = {}) {
     this.proto = opts.proto || "http";
-    this.host = opts.url || "localhost";
+    this.host = opts.host || "localhost";
     this.port = opts.port || 8086;
     this.url = getUrl(this.proto, this.host, this.port);
     this.db = opts.db || "_default";
@@ -108,7 +108,7 @@ class InfluxClient {
 
   async dropSubscription({ name, db=this.db, rp="autogen" } = {}) {
     if (!name) {
-      throw new ClientError("Name argument is required");
+      throw new ClientError("Argument 'name' is required");
     }
 
     const query =  QUERY_LITERALS.DROP_SUBSCRIPTION({ name, db, rp });
@@ -161,6 +161,10 @@ class InfluxClient {
   }
 
   getParams({ db=this.db, q, u=this.username, p=this.password } = {}) {
+    if (!q) {
+      throw new ClientError("Argument 'q' is required");
+    }
+
     return {
       db,
       q,
@@ -170,4 +174,4 @@ class InfluxClient {
   }
 }
 
-module.exports = InfluxClient;
+module.exports = { InfluxClient, ClientError, ServerError, RequestError };
